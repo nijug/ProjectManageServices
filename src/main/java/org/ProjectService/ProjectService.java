@@ -2,6 +2,8 @@ package org.ProjectService;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -11,7 +13,7 @@ import java.sql.Date;
 
 public class ProjectService {
 
-    private static String BASE_URL = "http://localhost:8080/project/";
+    private static String BASE_URL = "http://20.215.201.5:8080/project/";
     private static ProjectService instance;
     private final ProjectServiceInterface projectApi;
 
@@ -19,13 +21,28 @@ public class ProjectService {
         this.projectApi = projectApi;
     }
 
-    public static synchronized ProjectService getInstance() {
+    public static synchronized ProjectService getInstance(String accessToken) {
         if (instance == null) {
             Gson gson = new GsonBuilder()
                     .registerTypeAdapter(Date.class, new DateTypeAdapter())
                     .create();
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .addInterceptor(chain -> {
+                        Request original = chain.request();
+
+                        // Add the Authorization header
+                        Request request = original.newBuilder()
+                                .header("Authorization", "Bearer " + accessToken)
+                                .method(original.method(), original.body())
+                                .build();
+
+                        return chain.proceed(request);
+                    })
+                    .build();
+
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
+                    .client(client)
                     .addConverterFactory(GsonConverterFactory.create(gson))
                     .build();
             ProjectServiceInterface projectApi = retrofit.create(ProjectServiceInterface.class);

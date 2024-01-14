@@ -3,6 +3,7 @@ package org.ProjectService;
 
 import lombok.Getter;
 import lombok.Setter;
+import jakarta.validation.constraints.AssertTrue;
 
 import java.io.Serializable;
 import java.sql.Date;
@@ -23,6 +24,7 @@ public class Project implements Serializable {
 
     private String priority;
 
+
     public Project() {
     }
 
@@ -34,6 +36,17 @@ public class Project implements Serializable {
         this.priority = priority;
     }
 
+    @AssertTrue(message = "End date must be after start date")
+    public boolean isValid() {
+        if (dateStarted == null || dateEnded == null) {
+            System.out.println("dateStarted or dateEnded is null");
+            return true;
+        }
+        System.out.println("dateStarted: " + dateStarted);
+        System.out.println("dateEnded: " + dateEnded);
+        System.out.println(dateEnded.after(dateStarted));
+        return dateEnded.after(dateStarted);
+    }
 
 }
 
